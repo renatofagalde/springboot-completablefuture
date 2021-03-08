@@ -24,10 +24,8 @@ public class CarController {
     @Autowired
     private CarService carService;
 
-    @RequestMapping (method = RequestMethod.POST, consumes={MediaType.MULTIPART_FORM_DATA_VALUE},
-            produces={MediaType.APPLICATION_JSON_VALUE})
-    public @ResponseBody ResponseEntity uploadFile(
-            @RequestParam (value = "files") MultipartFile[] files) {
+    @RequestMapping (method = RequestMethod.POST, consumes={MediaType.MULTIPART_FORM_DATA_VALUE}, produces={MediaType.APPLICATION_JSON_VALUE})
+    public @ResponseBody ResponseEntity uploadFile(@RequestParam (value = "files") MultipartFile[] files) {
         try {
             for(final MultipartFile file: files) {
                 carService.saveCars(file.getInputStream());
