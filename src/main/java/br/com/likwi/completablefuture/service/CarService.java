@@ -15,6 +15,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 @Service
 public class CarService {
@@ -41,7 +42,6 @@ public class CarService {
     private List<Car> parseCSVFile(final InputStream inputStream) throws Exception {
 
         final List<Car> cars = new ArrayList<>();
-
 
         try {
             try (final BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
@@ -71,46 +71,35 @@ public class CarService {
         return CompletableFuture.completedFuture(cars);
     }
 
-    @Async
-    public CompletableFuture<List<Car>> getJoins() {
+    public List<Car> getAllCarsRoot() {
 
-//        CompletableFuture<List<Car>> completableFutureCars = new CompletableFuture<>();
-//        Future<List<Car>> futureCar1 = getAllCars().thenCompose(x -> CompletableFuture.allOf(x).join());
-//        Future<List<Car>> futureCar2 = getAllCars();
-//        Future<List<Car>> futureCar3 = getAllCars();
+        LOGGER.info("Request to get a list of cars");
 
-//        CompletableFuture<List<Car>> cars1 = getAllCars();
-//        CompletableFuture<List<Car>> cars2 = getAllCars();
-//        CompletableFuture<List<Car>> cars3 = getAllCars();
-//        CompletableFuture.allOf(cars1, cars2, cars3).join();
+        return carRepository.findAll();
+    }
 
 
-//        final CompletableFuture<List<Car>> join = getAllCars().thenComposeAsync(this::getAllCars).join();
+    public List<Car> getCarCompletableFuture() {
 
-        final CompletableFuture<CompletableFuture<List<Car>>> cars1 = CompletableFuture.supplyAsync(() -> getAllCars());
-        final CompletableFuture<CompletableFuture<List<Car>>> cars2 = CompletableFuture.supplyAsync(() -> getAllCars());
-        final CompletableFuture<CompletableFuture<List<Car>>> cars3 = CompletableFuture.supplyAsync(() -> getAllCars());
+        List<Car> cr1 = null;
 
-
-/*
-        final CompletableFuture<Bill> billFuture = CompletableFuture.supplyAsync(() -> billRepository.findOne(billId));
-        final CompletableFuture<BillSummaryDTO> summaryDTOCompletableFuture = CompletableFuture.supplyAsync(() -> billItemRepository.summarizeByBillId(billId));
-        final CompletableFuture<List<NumberUseDTO>> most10numbersUseFuture = CompletableFuture.supplyAsync(() -> billItemRepository.numberGreaterUse(billId, new PageRequest(0, 10)));
+        final CompletableFuture<List<Car>> cars1 = CompletableFuture.supplyAsync(() -> getAllCarsRoot());
+        final CompletableFuture<List<Car>> cars2 = CompletableFuture.supplyAsync(() -> getAllCarsRoot());
+        final CompletableFuture<List<Car>> cars3 = CompletableFuture.supplyAsync(() -> getAllCarsRoot());
 
         try {
-           final Bill bill = billFuture.get();
-           final BillSummaryDTO summary = summaryDTOCompletableFuture.get();
-           final List<NumberUseDTO> most10numbersUse = most10numbersUseFuture.get();
 
-           return new BillResumeDTO(bill.getIdentifier(), bill.getCustomer().getName(), summary, most10numbersUse);
+            cr1 = cars1.get();
+            cr1.addAll(cars2.get());
+            cr1.addAll(cars3.get());
+
         } catch (InterruptedException | ExecutionException e) {
-            log.error("findResume process error" + e);
+            LOGGER.info("error {}", e.getLocalizedMessage());
             throw new RuntimeException();
         }
- */
 
+        return cr1;
 
-        return  null;
 
     }
 }

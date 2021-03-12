@@ -24,23 +24,31 @@ public class CarController {
     @Autowired
     private CarService carService;
 
-    @RequestMapping (method = RequestMethod.POST, consumes={MediaType.MULTIPART_FORM_DATA_VALUE}, produces={MediaType.APPLICATION_JSON_VALUE})
-    public @ResponseBody ResponseEntity uploadFile(@RequestParam (value = "files") MultipartFile[] files) {
+    @RequestMapping(method = RequestMethod.POST, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}, produces = {MediaType.APPLICATION_JSON_VALUE})
+    public @ResponseBody
+    ResponseEntity uploadFile(@RequestParam(value = "files") MultipartFile[] files) {
         try {
-            for(final MultipartFile file: files) {
+            for (final MultipartFile file : files) {
                 carService.saveCars(file.getInputStream());
             }
             return ResponseEntity.status(HttpStatus.CREATED).build();
-        } catch(final Exception e) {
+        } catch (final Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
     }
 
-    @RequestMapping (method = RequestMethod.GET, consumes={MediaType.APPLICATION_JSON_VALUE}, produces={MediaType.APPLICATION_JSON_VALUE})
-    public @ResponseBody CompletableFuture<ResponseEntity> getAllCars() {
+    @RequestMapping(method = RequestMethod.GET, consumes = {MediaType.APPLICATION_JSON_VALUE}, produces = {MediaType.APPLICATION_JSON_VALUE})
+    public @ResponseBody
+    CompletableFuture<ResponseEntity> getAllCars() {
         return carService.getAllCars().<ResponseEntity>thenApply(ResponseEntity::ok)
                 .exceptionally(handleGetCarFailure);
+    }
+
+    @RequestMapping(method = RequestMethod.GET, consumes = {MediaType.APPLICATION_JSON_VALUE}, produces = {MediaType.APPLICATION_JSON_VALUE}, path = "/root")
+    public ResponseEntity<List<Car>> getAllCarsRoot() {
+        final List<Car> allCarsRoot = carService.getCarCompletableFuture();
+        return allCarsRoot == null ? ResponseEntity.noContent().build() : ResponseEntity.ok(allCarsRoot);
     }
 
     private static Function<Throwable, ResponseEntity<? extends List<Car>>> handleGetCarFailure = throwable -> {
